@@ -1,0 +1,296 @@
+<html>
+    <head>
+        <title>home</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="homepage/home.css">
+    </head>
+
+
+    <body>
+        <nav>
+            <ul>
+                <li><p id="welcome">Mount Prayer Chain</p></li>
+                <li><a href="home.html">Home</a></li>  
+                <li><a href="request.html">Post a prayer</a></li>  
+                <li><a href="profile.html">Profile</a></li> 
+                <li><a href="about.html">About</a></li>   
+                <li><input type="submit" id="logout" name="logout" value="log out"/></li>
+            </ul>
+        </nav>
+        <h1>Home</h1>
+        <div class="parent">
+            <p><label id="f"for="select" class="child">Filter By: </label></p>
+            <select name="filterOptions" id="filterOptions" class="child">
+            <option value="post" id="new">Oldest Date</option>
+            <option value="new" id="post">Newest Date</option>
+            </select>
+            <button id="button" class="child">Display</button>
+        </div>
+        
+        <div id="postDiv"></div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
+        <script type="module">
+                    // Import the functions you need from the SDKs you need
+            // Firebase documentation
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+            import { getDatabase, set, child, ref, update, remove, orderByValue,} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+            import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"; // this contains auth, the event listner for creating a new user, the event listener for logging a user in, the object for getting the currently signed in user, and the logout event
+            // TODO: Add SDKs for Firebase products that you want to use
+            // https://firebase.google.com/docs/web/setup#available-libraries
+        
+            // Your web app's Firebase configuration
+            // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+            const firebaseConfig = {
+            apiKey: "AIzaSyBNbTDHQcdxP3ou4IQFYPKHbmnZNJVsSeo",
+            authDomain: "authentication-6ccca.firebaseapp.com",
+            databaseURL: "https://authentication-6ccca-default-rtdb.firebaseio.com",
+            projectId: "authentication-6ccca",
+            storageBucket: "authentication-6ccca.appspot.com",
+            messagingSenderId: "277980008767",
+            appId: "1:277980008767:web:73e31d14ceca8fc212038a",
+            measurementId: "G-VY6JZVT2FE"
+            };
+        
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig); // initialized for requests
+            const app = initializeApp(firebaseConfig);
+            const database = getDatabase(app);
+            const auth = getAuth();
+
+            const user = auth.currentUser;
+            onAuthStateChanged(auth, (user) => { // Get the currently signed-in user
+                if (user) {
+                // User is signed in, see docs for a list of available properties
+                // https://firebase.google.com/docs/reference/js/firebase.User
+                const uid = user.uid;
+                // here you can get currently signed in user with user object
+                // ...
+                } else {
+                    location.replace('login.html');
+                    // ...
+                    // if you want to make any changes after user logs in you can code it here
+                    }
+            });
+
+            function isDateEqual(current, date){
+                if (current===date){
+                    return true;
+                } else{
+                    return false;
+                }
+            }
+            const currentDate = () => {
+                var date = new Date();
+                return date.toDateString();
+            };
+            
+            
+            // -------------don't touch, this works ----------------------- for deleting data --------------------
+            // might have to change to ref('requestForm')
+
+            var requestFormDB = firebase.database().ref('requestForm'); //references requestForm for database
+            var likeData = firebase.database().ref('likes');
+            var key = currentDate();
+
+            requestFormDB.orderByChild('expiration__date').equalTo(key).once('value', snapshot => {
+                const updates = {};
+                snapshot.forEach(child => updates[child.key] = null);
+                requestFormDB.update(updates);
+            });
+            likeData.orderByChild('expiration__date').equalTo(key).once('value', snapshot => {
+                const updates = {};
+                snapshot.forEach(child => updates[child.key] = null);
+                likeData.update(updates);
+            });
+
+
+            //---------------------------------------------------------3/6/23-------------------------------------------
+            var displayPosts = firebase.database().ref('requestForm');
+            var userDB = firebase.database().ref('users');
+
+
+            function likeButton(key){
+                // test if this works
+                console.log(key);
+                const user = firebase.auth().currentUser;
+                if (user){
+                    var uid = user.uid;
+                    displayPosts.orderByChild('key').equalTo(key).once("value").then(function(snapshot){
+                        snapshot.forEach(function(childSnapshot){
+                            console.log(childSnapshot);
+                            var uid = user.uid;
+                            var postData = childSnapshot.val();
+                            var likes = postData.likes;
+                            var postUid = postData.user__ID;
+                            var postDate = postData.post__Date;
+                            var expDate = postData.expiration__date;
+                            var name = postData.displayName;
+                            var prayer = postData.prayer;
+                            var intention = postData.intention;
+                            var postKey = postData.key;
+                            if (uid!=postUid){
+                                likes += 1;
+                                console.log(likes); //test
+                                childSnapshot.ref.update({
+                                likes: likes,
+                                });
+                                var likePost = likeData.push();
+                                var key = likePost.getKey();
+                                likePost.set({
+                                    liker: uid,
+                                    postDate: postDate,
+                                    expiration__date: expDate,
+                                    displayName: name,
+                                    intention: intention,
+                                    postKey: postKey,
+                                    likeKey: key,
+                                    prayer: prayer,
+                                });
+
+                            }
+                        });
+                    });
+
+                }   
+                
+            }
+
+            var posts = ""; // an empty posts var to append posts to
+
+            document.getElementById('button').onclick = function(){filterFunction()};
+            displayPostsOnNewestDate();
+
+            function filterFunction(){
+
+                var divTest ="";
+                document.getElementById('postDiv').innerHTML = divTest;
+
+                var likes = ""; //maybe add a reload script here
+                document.getElementById('likes').innerHTML = likes;
+
+                var filter = document.getElementById('filterOptions');
+                var value = filter.value;
+
+
+                if(value==='post'){
+                    displayPostsOnOldestPostDate();
+                }
+                if(value==='new'){
+                    displayPostsOnNewestDate();
+                }
+
+            }
+
+
+
+            //--------------------functions for filtering--------------------------------------
+
+            function displayPostsOnOldestPostDate(){
+                const keys = [];
+                displayPosts.once("value").then(function(snapshot){
+                    // check if list is empty, doesn't work yet
+                    if(snapshot.empty){
+                        posts = "No recent posts, come back later";
+                        document.getElementById('posts').innerHTML += posts;
+                    } // maybe adding an else here
+                    snapshot.forEach(function(childSnapshot){
+                        var childData = childSnapshot.val();
+
+                        var id_val = childData.user__ID;
+                        var key = childData.key;
+
+                        var name_val ="";
+                        var prayer_val = childData.prayer;
+                        var date_val = childData.post__Date;
+                        var exp_val = childData.expiration__date;
+                        var intent_val = childData.intention;
+                        var like_val = childData.likes;
+                        
+
+                        var anon_val = childData.anonymous;
+                        if (anon_val==='anonymous'){
+                            name_val = 'Anonymous';
+                        } else {
+                            name_val = childData.displayName;
+                        }
+                        
+                        posts = '<div class=container>'+'<p>'+name_val+'<br>'+'Prayer:&ensp;'+prayer_val+
+                            '<br>'+'Intention:&ensp;'+intent_val+'<br>'+'Posted:&ensp;'+date_val
+                            +'<br>'+'Expires:&ensp;'+exp_val+'<br>'+'<br>'+'</p><button id="'+key+'">I will pray for you!</button>'+
+                            '</div><script>console.log("test");\ndocument.getElementById(\''+key+'\').addEventListener("click", function(){ likeButton(\''+key+'\') });';
+
+                        keys.push(key);
+
+                        document.getElementById('postDiv').innerHTML += posts;
+                        document.getElementById(key).addEventListener("click", function(){ likeButton(key) });
+                        // still doesn't work, idk why??? this is what wschools and Weiss said would work soooo idk...
+                        //here is the script that actually grabs the script by the id which is "likes" in this case and passes an event listener to it
+                        //document.getElementById('likes').innerHTML = '\n'+'document.getElementById(\''+key+'\').addEventListener("click", function(){ likeButton(\''+key+'\') });\nconsole.log("test");' + document.getElementById('likes').innerHTML;
+                        
+                    });
+                });
+            }
+
+
+
+            function displayPostsOnNewestDate(){
+                displayPosts.once("value").then(function(snapshot){
+
+                    snapshot.forEach(function(childSnapshot){
+                        var childData = childSnapshot.val();
+
+                        var name_val="";
+                        var prayer_val = childData.prayer;
+                        var date_val = childData.post__Date;
+                        var exp_val = childData.expiration__date;
+                        var intent_val = childData.intention;
+                        var like_val = childData.likes;
+
+                        var anon_val = childData.anonymous;
+                        if (anon_val==='anonymous'){
+                            name_val = 'Anonymous';
+                        } else {
+                            name_val = childData.displayName;
+                        }
+
+                        posts = '<div class=container>'+'<p>'+name_val+'<br>'+'Prayer:&ensp;'+prayer_val+
+                            '<br>'+'Intention:&ensp;'+intent_val+'<br>'+'Posted:&ensp;'+date_val
+                            +'<br>'+'Expires:&ensp;'+exp_val+'<br><br>'+' <button>I will pray for you!</button>'+'</div>';
+
+                        document.getElementById('postDiv').innerHTML = posts+document.getElementById('postDiv').innerHTML;
+
+                    });
+                });
+            }
+
+
+
+            //-----------------------------------------------------------------------------------------------------------------------
+
+            //-----------------------------------------------------------------------------------------------------------
+        
+            //-------------------------2/11-------------------------------------------------------------------------
+        
+            logout.addEventListener('click',(e)=>{ // logging out a user 
+                signOut(auth).then(() => {
+                // Sign-out successful.
+                // -------------------------------------------------------
+                // Take user back to log in page, insert Code here
+                location.replace("login.html") //this does the thing
+                alert('user logged out');
+                }).catch((error) => {
+                // An error happened.
+                const errorCode = error.code;
+                const errorMessage = error.message;      
+                alert(errorMessage);
+                });
+            });
+            //------------------------------------Event Listeners------------------------------------------------------------
+
+        </script>
+        <script id="likes">
+            
+        </script>
+    </body>
+        
+</html>

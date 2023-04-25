@@ -1,0 +1,97 @@
+<html>
+    <head>
+        <title>home</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="about/about.css">
+    </head>
+
+
+    <body>
+        <nav>
+            <ul>
+                <li><a href="home.html">Home</a></li>  
+                <li><a href="request.html">Post a prayer</a></li>  
+                <li><a href="profile.html">Profile</a></li> 
+                <li><a href="about.html">About</a></li>   
+                <li><input type="submit" id="logout" name="logout" value="log out"/></li>
+              </ul>
+        </nav>
+        <h1>About</h1>
+        <div class="container">
+            <p class="p">
+                Welcome to Mount Prayer Chain!<br><br>
+
+                My name is Chance White. I am a Student at Mount St. Mary's university obtaining
+                a degree in computer science. This project spawned from an idea that I and the 
+                University Chaplain had to give a platform to more students who are in need of prayers<br><br>
+
+                There are 4 pages on this website. The <a class="link" href="home.html">home</a> page is where users can view prayers from others users.
+                if you want, you can like some of the prayers and they will be sent to your profile page so you can
+                save them and pray for their intentions. There is also the <a class="link" href="request.html">post a prayer</a> page where you, as a user can
+                post your own prayer intention to your desired specifications. The <a class="link" href="profile.html">profile</a> page is where you can view intentions
+                that you have post and delete some if you are desire and where you can view intentions that you have liked so you remember to pray for their intentions.
+                The <a class="link" href="about.html">about</a> page is where you are now! It has all the information that you may need to naviagte this site. Enjoy!
+                God Bless!<br><br>
+
+            </p>
+        </div>
+    </body>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        // Firebase documentation
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getDatabase, set, child, ref, update, remove} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"; // this contains auth, the event listner for creating a new user, the event listener for logging a user in, the object for getting the currently signed in user, and the logout event
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyBNbTDHQcdxP3ou4IQFYPKHbmnZNJVsSeo",
+          authDomain: "authentication-6ccca.firebaseapp.com",
+          databaseURL: "https://authentication-6ccca-default-rtdb.firebaseio.com",
+          projectId: "authentication-6ccca",
+          storageBucket: "authentication-6ccca.appspot.com",
+          messagingSenderId: "277980008767",
+          appId: "1:277980008767:web:73e31d14ceca8fc212038a",
+          measurementId: "G-VY6JZVT2FE"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth();
+      
+          const user = auth.currentUser;
+          onAuthStateChanged(auth, (user) => { // Get the currently signed-in user
+              if (user) {
+              // User is signed in, see docs for a list of available properties
+              // https://firebase.google.com/docs/reference/js/firebase.User
+              const uid = user.uid;
+              // here you can get currently signed in user with user object
+              // ...
+              } else {
+                  // User is signed out
+                   // ...
+                   // if you want to make any changes after user logs in you can code it here
+                }
+          });
+      
+          logout.addEventListener('click',(e)=>{ // logging out a user 
+              signOut(auth).then(() => {
+              // Sign-out successful.
+              // -------------------------------------------------------
+              // Take user back to log in page, insert Code here
+              location.replace("login.html") //this does the thing
+              alert('user logged out');
+              }).catch((error) => {
+              // An error happened.
+              const errorCode = error.code;
+              const errorMessage = error.message;
+      
+              alert(errorMessage);
+              });
+          });
+      </script>
+</html>

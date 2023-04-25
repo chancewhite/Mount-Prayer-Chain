@@ -1,0 +1,115 @@
+<html>
+<head>
+<title>signup</title>
+<link rel="stylesheet" href="login/cssFile.css">
+</head>
+
+<body>
+  <!-- this currently works, work from here to fix continue working towards goal tomorrow-->
+<div id="login-box">
+    <div class="left">
+        <h1 id='status'>Sign Up</h1>
+        <input type="text" id="first__name" name="first__name" placeholder="First Name"/>
+        <input type="text" id="last__name" name="last__name" placeholder="Last Name"/>
+        <input type="text" id="email" name="email" placeholder="E-mail" />
+        <input type="password" id="password" name="password" placeholder="Password" />
+        <input type="password" id="verify__pass" name="verift__pass" placeholder="Verify Password"/>
+        <input type="submit" id='signUp' name="signUp" value="sign Up" />
+        <p class="form__text">
+          <a class="form__link" href="login.html">Already have an account? Sign in</a>
+           <!-- I think I should change this later about the href, ask Dr. Heinold-->
+        </p>
+  </div>
+  
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
+<script type="module">
+   // Import the functions you need from the SDKs you need
+   // Firebase documentation
+   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+   import { getDatabase, set, ref, update } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile} from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"; // this contains auth, the event listner for creating a new user, the event listener for logging a user in, the object for getting the currently signed in user, and the logout event
+   // TODO: Add SDKs for Firebase products that you want to use
+   // https://firebase.google.com/docs/web/setup#available-libraries
+
+   // Your web app's Firebase configuration
+   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+   const firebaseConfig = {
+    apiKey: "AIzaSyBNbTDHQcdxP3ou4IQFYPKHbmnZNJVsSeo",
+    authDomain: "authentication-6ccca.firebaseapp.com",
+    databaseURL: "https://authentication-6ccca-default-rtdb.firebaseio.com",
+    projectId: "authentication-6ccca",
+    storageBucket: "authentication-6ccca.appspot.com",
+    messagingSenderId: "277980008767",
+    appId: "1:277980008767:web:73e31d14ceca8fc212038a",
+    measurementId: "G-VY6JZVT2FE"
+   };
+
+   // Initialize Firebase
+   firebase.initializeApp(firebaseConfig);
+   const app = initializeApp(firebaseConfig);
+   const database = getDatabase(app);
+   const auth = getAuth();
+
+   var users = firebase.database().ref('users');
+
+   signUp.addEventListener('click',(e) => { // on click, new user gets added to database
+
+    var email = document.getElementById('email').value;
+    var password = document.getElementById('password').value;
+    var first__name = document.getElementById('first__name').value;
+    var last__name = document.getElementById('last__name').value;
+   
+    createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+        // Signed in 
+          const user = userCredential.user;
+          const uid = user.uid;
+          var displayName = first__name+" "+last__name;
+          user.displayName = displayName;
+          var newUser = users.child(uid);
+          newUser.displayName = displayName; 
+
+          newUser.set({
+            email: email,
+            first__name: first__name,
+            last__name: last__name,
+            user_ID: uid,
+            displayName: displayName,
+          });
+
+          updateProfile(auth.currentUser, {
+            displayName: displayName,
+          });
+
+
+          // TAKE NEW USER TO HOME PAGE
+          alert('user created');
+          location.replace("home.html") //this takes user to home page
+        })
+        .catch((error) => {
+           const errorCode = error.code;
+           const errorMessage = error.message;
+
+           alert(errorMessage);
+         // ..
+        });
+    });
+
+   const user = auth.currentUser;
+   onAuthStateChanged(auth, (user) => { // Get the currently signed-in user
+        if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/firebase.User
+        const uid = user.uid;
+        // here you can get currently signed in user with user object
+        // ...
+        } else {
+            // User is signed out
+             // ...
+             // if you want to make any changes after user logs in you can code it here
+          }
+   });
+
+</script>
+</html>
