@@ -1,0 +1,266 @@
+<html>
+    <head>
+        <title>home</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="request/request.css">
+    </head>
+
+
+    <body>
+        <nav>
+            <ul>
+                <li><a href="home.html">Home</a></li>  
+                <li><a href="request.html">Post a prayer</a></li>  
+                <li><a href="profile.html">Profile</a></li> 
+                <li><a href="about.html">About</a></li>   
+                <li><input type="submit" id="logout" name="logout" value="log out"/></li>
+            </ul>
+        </nav>
+        <h1>Prayer Request Form</h1>
+        <div class="container" id="container">
+            <form action="" id="requestForm">
+                <div class="alert" id="alert">Request Sent</div>
+                <div class="inputBox">
+                    <p><label for="prayer">Prayer Request:</label></p>
+                    <textarea id="prayer" name="prayer" rows="4" cols="50" maxlength="250"></textarea>
+                    <br>
+                </div>
+                <div class="dropDown">
+                    <p><label for="select">Type of prayer:</label></p>
+                    <select name="intention" id="intention">
+                        <option value="General Prayer Intention" id="general">General Prayer Intention</option>
+                        <option value="Prayer for the Sick" id="sick">Prayer for the Sick</option>
+                        <option value="Prayer for the Poor" id="poor">Prayer for the Poor</option>
+                        <option value="Prayer for Suffering" id="suff">Prayer for Suffering</option>
+                        <option value="Prayer for the Dying" id="die">Prayer for the Dying</option>
+                        <option value="Prayer for the Deceased" id="soul">Prayer for the Deceased</option>
+                        <option value="Prayer for Vocations" id="vocation">Prayer for Vocations</option>
+                        <option value="Prayer for an increase in Virtue" id="viture">Prayer for an increase in Virtue</option>
+                    </select>
+                <br><br>
+                </div>
+                <div class="calandar">
+                    <p><label for="expiration">How long you would like this prayer intention displayed:</label></p>
+                    <select name="expiration__date" id="expiration__date">
+                        <option value="one--day" id="one--day">1 Day</option>
+                        <option value="one--week" id="one--week">1 Week</option>
+                        <option value="two--week" id="two--week">2 Weeks</option>
+                        <option value="one--month" id="one--month">1 Month</option>
+                        <option value="three--month" id="three--month">3 Months</option>
+                    </select>
+                </div>
+                <br>
+                <div class="select">
+                    <p><label for="anon">Anonymity: (would you like to post this anonymously?)</label></p>
+                    <select name="anon" id="anon">
+                        <option value="not anonymous" id="nanon">Not Anonymous</option>
+                        <option value="anonymous" id="yanon">Anonymous</option>
+                    </select>
+                </div>
+                <br>
+                <div class="submit">
+                    <input type="submit" value="Post">
+                </div>
+            </form>
+        </div>
+    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        // Firebase documentation
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getDatabase, set, child, ref, update, remove, query, orderByChild, push } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"; // this contains auth, the event listner for creating a new user, the event listener for logging a user in, the object for getting the currently signed in user, and the logout event
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyBNbTDHQcdxP3ou4IQFYPKHbmnZNJVsSeo",
+          authDomain: "authentication-6ccca.firebaseapp.com",
+          databaseURL: "https://authentication-6ccca-default-rtdb.firebaseio.com",
+          projectId: "authentication-6ccca",
+          storageBucket: "authentication-6ccca.appspot.com",
+          messagingSenderId: "277980008767",
+          appId: "1:277980008767:web:73e31d14ceca8fc212038a",
+          measurementId: "G-VY6JZVT2FE"
+        };
+      
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig); // initialized for requests
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth();
+
+
+        onAuthStateChanged(auth, (user) => { // Get the currently signed-in user
+            if (user) {
+            // User is signed in, see docs for a list of available properties
+            // https://firebase.google.com/docs/reference/js/firebase.User
+            const uid = user.uid;
+            // here you can get currently signed in user with user object
+            // ...
+            } else {
+                // User is signed out
+                location.replace("login.html")
+                // if you want to make any changes after user logs in you can code it here
+            }
+        });
+
+        
+        function isDateEqual(current, date){
+            if (current===date){
+                return true;
+            } else{
+                return false;
+            }
+        }
+        const currentDate = () => {
+            var date = new Date();
+            return date.toDateString();
+        };
+
+        var userDB = firebase.database().ref('users');
+        var newUserDB = firebase.database().ref('users');
+        var requestFormDB = firebase.database().ref('requestForm'); //references requestForm for database
+        var key = currentDate();
+        
+        
+        // -------------don't touch, this works ----------------------- for deleting data --------------------
+
+        /**
+        requestFormDB.orderByChild('expiration__date').equalTo(key).on('child_added', (snapshot) => {
+            var date = new Date();
+            date.setDate(date.getDate());
+            var instanceID = snapshot.key;
+            var instanceDate = snapshot.val().expiration__date;
+            var equality = isDateEqual(instanceDate, date);
+            console.log(instanceDate);
+            snapshot.requestFormDB.remove();
+        });
+        **/
+
+        document.getElementById('requestForm').addEventListener("submit", submitForm);
+
+        const dateGen = (id) => {
+            var targetDate = new Date();
+            if(id==="one--day"){
+                targetDate.setDate(targetDate.getDate() +1);
+            }
+            if (id==="one--week") {
+               targetDate.setDate(targetDate.getDate() +7);
+            }
+            if (id==="two--week") {
+                targetDate.setDate(targetDate.getDate() +14);
+            }
+            if (id==="one--month") {
+                targetDate.setDate(targetDate.getDate() +30);
+            }   
+            if (id==="three--month") {
+                targetDate.setDate(targetDate.getDate() +90);
+            }    
+            //------------might still need idk--------------------   
+            var dd = targetDate.getDate();
+            var mm = targetDate.getMonth() + 1; // 0 is January, so we must add 1
+            var yyyy = targetDate.getFullYear();
+
+            var dateString = dd + "/" + mm + "/" + yyyy; 
+            //--------------------------------------    
+            return targetDate.toDateString();
+        };
+
+        function submitForm(e){
+            e.preventDefault();
+            // --------------------------------------------2/20/2023---------------------------------------------------
+            const user = firebase.auth().currentUser; // this works for getting users!!!!!!!
+            if (user){
+                var prayer = getElementVal('prayer');
+                var intention = getElementVal('intention');
+                var expiration__date = getElementVal('expiration__date');
+                var anonymous = getElementVal('anon');
+                var likes = 0;
+                var post__Date = currentDate();
+                var user__ID = user.uid;
+                
+                //var userID = user.uid try to get user ID working
+
+                var date = dateGen(expiration__date);
+
+                saveRequest(prayer, intention, date, anonymous, likes, post__Date, user__ID); // added user ID   
+            } else{
+                location.replace("login.html");
+            }
+
+            //enable alert
+            document.querySelector('.alert').style.display = "block";
+
+            //remove alert after 3 seconds
+            setTimeout(() => {
+                document.querySelector('.alert').style.display = "none";
+
+            }, 3000);
+
+            //reset the form
+            document.getElementById("requestForm").reset();
+
+            //insert code here to redirect to homepage
+            //----------------------------------------------------------
+            //Don't forget
+            //location.replace("home.html") 
+        }
+
+        const saveRequest = (prayer, intention, date, anonymous, likes, post__Date, user__ID) => {
+            var newRequestForm = requestFormDB.push();
+            var key = newRequestForm.getKey();
+
+            newUserDB.orderByChild('user_ID').equalTo(user__ID).once("value").then(function(snapshot){
+                var name ="";
+                snapshot.forEach(function(childSnapshot){
+                    var userData = childSnapshot.val();
+                    //console.log(userData.user_ID); was used for testing
+                    //console.log(user__ID);
+                    name = userData.displayName;
+                    newRequestForm.set({ //update with display name here
+                        displayName: name,
+                        prayer : prayer,
+                        intention : intention,
+                        expiration__date : date,
+                        anonymous : anonymous,
+                        likes: likes,
+                        post__Date: post__Date,
+                        user__ID: user__ID,
+                        key: key,
+                    });
+                });
+            });
+
+            //-----------------------------------------3/9/2023-------------------------------------------------
+            // -------------------------something may still be iffy with this, I am not sure, might have been a connection thing
+            
+
+        };
+
+        const getElementVal = (id) => {
+            return document.getElementById(id).value;
+        };
+
+      
+        logout.addEventListener('click',(e)=>{ // logging out a user 
+            signOut(auth).then(() => {
+            // Sign-out successful.
+            // -------------------------------------------------------
+            // Take user back to log in page, insert Code here
+            location.replace("login.html") //this does the thing
+            alert('user logged out');
+            }).catch((error) => {
+            // An error happened.
+            const errorCode = error.code;
+            const errorMessage = error.message;
+    
+            alert(errorMessage);
+            });
+        });
+
+    </script>
+</html>

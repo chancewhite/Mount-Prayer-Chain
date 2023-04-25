@@ -1,0 +1,246 @@
+<html>
+    <head>
+        <title>home</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="profile/profile.css">
+    </head>
+
+
+    <body>
+        <nav>
+            <ul> 
+                <li><a href="home.html">Home</a></li>  
+                <li><a href="request.html">Post a prayer</a></li>  
+                <li><a href="profile.html">Profile</a></li> 
+                <li><a href="about.html">About</a></li>   
+                <li><input type="submit" id="logout" name="logout" value="log out"/></li>
+              </ul>
+        </nav>
+        <h1>Profile</h1>
+        <h2 id="name"></h2>
+        <div class="parent">
+            <div class="loading" id="loading">Loading</div>
+            <div id="userPost" class="child"></div> <!--3/14 finish coding userPosts with the div-->
+            <p id="likePost" class="child"></p>
+        </div>
+    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/7.14.1-0/firebase.js"></script>
+    <script type="module">
+                // Import the functions you need from the SDKs you need
+        // Firebase documentation
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getDatabase, set, child, ref, update, remove, query, orderByChild, push } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"; // this contains auth, the event listner for creating a new user, the event listener for logging a user in, the object for getting the currently signed in user, and the logout event
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyBNbTDHQcdxP3ou4IQFYPKHbmnZNJVsSeo",
+          authDomain: "authentication-6ccca.firebaseapp.com",
+          databaseURL: "https://authentication-6ccca-default-rtdb.firebaseio.com",
+          projectId: "authentication-6ccca",
+          storageBucket: "authentication-6ccca.appspot.com",
+          messagingSenderId: "277980008767",
+          appId: "1:277980008767:web:73e31d14ceca8fc212038a",
+          measurementId: "G-VY6JZVT2FE"
+        };
+      
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth();
+      
+          onAuthStateChanged(auth, (user) => { // Get the currently signed-in user
+              if (user) {
+              // User is signed in, see docs for a list of available properties
+              // https://firebase.google.com/docs/reference/js/firebase.User
+              const uid = user.uid;
+              // here you can get currently signed in user with user object
+              // ...
+              } else {
+
+                  // User is signed out
+                  location.replace("login.html")
+                   // ...
+                   // if you want to make any changes after user logs in you can code it here
+                }
+          });
+
+          //--------------------------3/7/2023 user posts-------------------------------------------------
+
+
+
+          var userPosts = "";
+          var likePosts = "";
+
+
+          displayName();
+          displayUserPosts();
+          displayLikedPosts();
+
+          function displayName(){
+            firebase.auth().onAuthStateChanged(function(user){
+                if(user){
+                    var uid = user.uid;
+                    var userDB = firebase.database().ref('users');
+                    userDB.orderByChild('user_ID').equalTo(uid).once("value").then(function(snapshot){
+                        snapshot.forEach(function(childSnapshot){
+                            var userData = childSnapshot.val();
+                            name = userData.first__name;
+                            document.getElementById('name').innerHTML = "Hello "+name;
+                        });
+                    });
+                }
+            });
+          }
+
+          function displayLikedPosts(){
+            var counter = 0;
+            firebase.auth().onAuthStateChanged(function(user){
+                if(user){
+                    var uid = user.uid;
+                    var likeData = firebase.database().ref('likes').orderByChild('liker').equalTo(uid);
+                    likeData.once("value").then(function(snapshot){
+                        snapshot.forEach(function(childSnapshot){
+                            counter+=1;
+                            var childData = childSnapshot.val();
+                            var key = childData.likeKey;
+                            var name = childData.displayName;
+                            var intention = childData.intention;
+                            var postDate = childData.postDate;
+                            var expDate = childData.expiration__date;
+                            var prayer = childData.prayer;
+
+                            likePosts = '<div class=container>'+'<p>'+name+'<br>Prayer:&ensp;'+prayer+'<br>'+
+                                'Intention:&ensp;'+intention+'<br>'+'Posted:&ensp;'+
+                                postDate+'<br>'+'Expires:&ensp;'+expDate+'<br>'+'</p>'+'<br>';
+
+                            document.getElementById('likePost').innerHTML += likePosts;
+
+                        });
+                        if(counter==0){
+                            likePosts='<p class="p">you have no liked intentions</p>';
+                            document.getElementById('likePost').innerHTML = likePosts;
+                        }
+
+                    });
+                }
+            });
+          }
+
+
+          function displayUserPosts(){
+            var counter = 0; // count to see if there are no posts by user
+            firebase.auth().onAuthStateChanged(function(user){ // another way to get user Ids
+                if(user){
+                    var uid = user.uid;
+                    var userPostsDB = firebase.database().ref('requestForm').orderByChild('user__ID').equalTo(uid);
+                    userPostsDB.once("value").then(function(snapshot){
+                        snapshot.forEach(function(childSnapshot){
+                            counter+=1;
+                            var childData = childSnapshot.val();
+                            var key = childData.key;
+
+                            var prayer_val = childData.prayer;
+                            var date_val = childData.post__Date;
+                            var exp_val = childData.expiration__date;
+                            var intent_val = childData.intention;
+                            var like_val = childData.likes;
+
+                            userPosts = '<div class=container>'+'<p>'+'Prayer:&ensp;'+prayer_val+'<br>'+
+                                'Intention:&ensp;'+intent_val+'<br>'+'Posted:&ensp;'+
+                                date_val+'<br>'+'Expires:&ensp;'+exp_val+'<br>'+'Likes:&ensp;'+
+                                like_val+'</p>'+'<br>'+'<button id="'+key+'">Delete</button></div>';
+
+                            document.getElementById('userPost').innerHTML += userPosts;
+                            document.getElementById(key).addEventListener("click", function(){ deleteButton(key) });
+
+                            document.getElementById('altScript').innerHTML = '\n'+'document.getElementById(\''+key+'\').addEventListener("click", function(){ deleteButton(\''+key+'\')});' + document.getElementById('altScript').innerHTML;
+
+                        });
+                        if (counter==0){
+                            userPosts ='<p class="p">you have not posted any recent intentions</p>'; //print this if there are no user posts
+                            document.getElementById('userPost').innerHTML = userPosts;
+                        }
+                    });
+                }
+            });
+          }
+          // haven't tested yet ---------------------------------------------------------------
+          var userPostData = firebase.database().ref('requestForm');
+          var likeData = firebase.database().ref('likes');
+
+
+          function deleteButton(key){
+            document.querySelector('.loading').style.display = "block";
+            userPostData.orderByChild('key').equalTo(key).once('value', snapshot => {
+                const updates = {};
+                snapshot.forEach(child => updates[child.key] = null);
+                userPostData.update(updates);
+            });
+            likeData.orderByChild('postKey').equalTo(key).once('value', snapshot => {
+                const updates = {};
+                snapshot.forEach(child => updates[child.key] = null);
+                likeData.update(updates);
+            })
+            setTimeout(() =>{
+                document.querySelector('.loading').style.display = "none";
+            }, 3000);
+            location.reload;
+          }
+
+          // -------------------------3/6/2023------------------------------------------------------------
+          /**
+          var requestFormDB = firebase.database().ref('requestForm');
+
+          document.getElementById('displayForm').addEventListener("submit", displayForm);
+
+          function displayForm(e){
+            e.preventDefault();
+
+            const user = firebase.auth().currentUser;
+            console.log(user);
+            if (user){
+                var posts = document.getElementById('posts');
+                var uid = user.uid;
+
+                if(posts==='user'){
+                    displayUserPosts(uid);
+                    location.replace("home.html");
+                }
+            }
+          }
+
+          const displayUserPosts = (uid) => {
+                requestFormDB.orderByChild('user__ID').equalTo(uid).once('value', snapshot =>{
+                   console.log('hello');
+                });
+          };
+
+          **/
+      
+          logout.addEventListener('click',(e)=>{ // logging out a user 
+              signOut(auth).then(() => {
+              // Sign-out successful.
+              // -------------------------------------------------------
+              // Take user back to log in page, insert Code here
+              location.replace("login.html") //this does the thing
+              alert('user logged out');
+              }).catch((error) => {
+              // An error happened.
+              const errorCode = error.code;
+              const errorMessage = error.message;
+      
+              alert(errorMessage);
+              });
+          });
+    </script>
+    <script id="altScript">
+        console.log("test");
+
+
+    </script>
+</html>

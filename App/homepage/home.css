@@ -1,0 +1,86 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+h1{
+    padding-left: 40px;
+    padding-top: 20px;
+    color: #FFF;
+}
+
+nav {
+    list-style: none;
+    width: 100%;
+    height:70px;
+    background-color: #fff;
+}
+
+.posts{
+    display: none;
+}
+
+#welcome{
+    font-size: 20;
+    color: navy;
+    text-decoration: underline;
+}
+
+.filterForm{
+    padding-left: 40px;
+}
+
+.parent{
+    margin: 1rem;
+    padding: 2rem 2rem;
+    text-align: center;
+}
+
+.child{
+    display: inline-block;
+    vertical-align:middle;
+}
+
+
+.container{
+    position: left;
+    margin: 5% auto;
+    width: 500px;
+    height: 5% auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    background: #FFF;
+    border-radius: 2px;
+    line-height: 20px;
+    padding: 20px;
+}
+
+body {
+    background-color: #2452A1;
+}
+
+#f{
+    color: #FFF;
+}
+
+ul {
+margin-left: 100px;
+
+}
+
+ul li {
+    list-style: none;
+    display: inline-block;
+    line-height: 80px;
+}
+
+ul li a {
+    text-decoration: none; /* make sure no underline underneath link */
+    font-size: 16px;
+    font-family: arial; /* specify different one later */
+    color: #1e1e1e;
+    padding: 0 20px;
+};
+
+ul li a:hover {
+    color:navy;
+};
